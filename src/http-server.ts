@@ -184,7 +184,6 @@ async function main() {
         if (transport.sessionId) {
           sessions.delete(transport.sessionId);
         }
-        mcpServer.close().catch(() => {});
       };
 
       await transport.handleRequest(req, res);
