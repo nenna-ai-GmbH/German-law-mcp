@@ -89,13 +89,20 @@ jobs:
               exit 1
             fi
 
-            echo "Downloading database.db.gz from release $TAG..."
+            echo "Downloading database from release $TAG..."
             mkdir -p data
-            if gh release download "$TAG" -p "database.db.gz" -D data/ 2>/dev/null; then
+            gh release download "$TAG" -p "database.db.gz" -D data/ 2>/dev/null || \
+              gh release download "$TAG" -p "database-free.db.gz" -D data/ 2>/dev/null || true
+
+            if [ -f data/database.db.gz ]; then
               gunzip -f data/database.db.gz
-              echo "OK: Downloaded $(du -sh data/database.db | cut -f1) from release $TAG"
+              echo "OK: Downloaded database.db.gz → $(du -sh data/database.db | cut -f1) from release $TAG"
+            elif [ -f data/database-free.db.gz ]; then
+              gunzip -c data/database-free.db.gz > data/database.db
+              rm data/database-free.db.gz
+              echo "OK: Downloaded database-free.db.gz (fallback) → $(du -sh data/database.db | cut -f1) from release $TAG"
             else
-              echo "ERROR: Could not download database.db.gz from release $TAG"
+              echo "ERROR: Could not download database.db.gz or database-free.db.gz from release $TAG"
               exit 1
             fi
           done
